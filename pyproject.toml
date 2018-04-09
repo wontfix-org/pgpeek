@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tues"
+version = "0.0.1"
+description = "PostgreSQL query viewer"
+readme = "README.md"
+requires-python = ">=3.9"
+license = {file = "LICENSE"}
+authors = [
+    {name = "Michael van Bracht", email = "michael@wontfix.org"},
+]
+
+dependencies = [
+    "click",
+    "psycopg2",
+    "textual",
+    "rich",
+    "packaging",
+]
+
+[project.urls]
+homepage = "https://github.com/wontfix-org/pgpeek/"
+repository = "https://github.com/wontfix-org/pgpeek/"
+
+[project.optional-dependencies]
+test = ["pytest"]
+dev = ["build", "twine", "tox", "textual[dev]"]
+
+[project.scripts]
+pgpeek = "pgpeek.cli:cli"
+
+[tool.setuptools.packages.find]
+where = ["src"]
