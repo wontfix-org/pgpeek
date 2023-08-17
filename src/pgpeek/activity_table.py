@@ -10,7 +10,7 @@ import pgpeek.confirm as _confirm
 
 class ActivityTable(_widget.Widget, can_focus=True):
     show_idle = _reactive.Reactive(False)
-    update_table = _reactive.Reactive(True)
+    refresh_view = _reactive.Reactive(True)
     data = _reactive.Reactive(None)
 
     BINDINGS = [
@@ -18,7 +18,7 @@ class ActivityTable(_widget.Widget, can_focus=True):
         ("k", "cancel_backend", "Cancel Backend"),
         ("K", "terminate_backend", "Terminate Backend"),
         ("c", "query_to_clipboard", "Query to Clipboard"),
-        ("u", "update_table", "Update Table"),
+        ("r", "refresh_view", "Toggle Refresh"),
     ]
 
     _COLUMNS = {
@@ -68,10 +68,11 @@ class ActivityTable(_widget.Widget, can_focus=True):
         # self.refresh()
 
     def update(self):
-        if self.update_table:
+        if self.refresh_view:
+            self._activity = list(self._state.get_activity())
             a = [
                 {k: self._COLUMNS.get(k, {}).get("handle", str)(v).strip() for k, v in row.items()}
-                for row in self._state.get_activity()
+                for row in self._activity
             ]
             self.data = [_ for _ in a if self.show_idle or _["state"] != "idle"]
 
@@ -119,9 +120,6 @@ class ActivityTable(_widget.Widget, can_focus=True):
                 # FIXME(mvb): Shouldn't this be done by watch_cursor_coordinate inside the table?
                 table._scroll_cursor_into_view()
 
-    def watch_show_idle(self):
-        self.redraw()
-
     def action_show_idle(self):
         self.show_idle = not self.show_idle
 
@@ -143,12 +141,12 @@ class ActivityTable(_widget.Widget, can_focus=True):
             ),
         )
 
-    def action_update_table(self):
+    def action_refresh_view(self):
         self.log("Toggled table updating")
-        self.update_table = not self.update_table
+        self.refresh_view = not self.refresh_view
 
-    def watch_update_table(self):
-        if self.update_table:
+    def watch_refresh_view(self):
+        if self.refresh_view:
             self.set_timer(1, self.update)
 
     def action_query_to_clipboard(self):
@@ -159,7 +157,8 @@ class ActivityTable(_widget.Widget, can_focus=True):
         return table.get_row_at(table.cursor_coordinate.row)
 
     def get_current_query(self):
-        return self.get_current_row()[5]
+        pid = self.get_current_row()[0]
+        return [_["query"] for _ in self._activity if _["pid"] == int(pid)][0]
 
     def get_column(self, key):
         table = self.query_one(_widgets.DataTable)
