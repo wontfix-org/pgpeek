@@ -1,11 +1,57 @@
 import re as _re
+import textwrap as _tw
 
+import textual.containers as _containers
 import textual.coordinate as _coordinate
 import textual.reactive as _reactive
+import textual.screen as _screen
 import textual.widget as _widget
 import textual.widgets as _widgets
 
 import pgpeek.confirm as _confirm
+
+
+class QueryPlan(_screen.Screen):
+    DEFAULT_CSS = """
+    #plan {
+        height: 45%;
+        width: 100%;
+        border: solid red;
+    }
+
+    #query {
+        height: 45%;
+        width: 100%;
+        border: solid red;
+    }
+
+    #dialog_footer {
+        width: 100%;
+        border: solid red;
+        align-horizontal: center;
+    }
+
+    """
+
+    def __init__(self, query, plan, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._query = _tw.dedent(query)
+        self._plan = _tw.dedent(plan)
+
+    def compose(self):
+        yield _containers.Vertical(
+            _widgets.Markdown(markdown=f"```{self._query}```", id="query"),
+            _widgets.Markdown(markdown=f"```{self._plan}```", id="plan"),
+            _containers.Center(
+                _widgets.Button("Close", variant="primary", id="close"),
+                id="dialog_footer",
+            ),
+            id="dialog",
+        )
+
+    def on_button_pressed(self, event: _widgets.Button.Pressed):
+        if event.button.id == "close":
+            self.app.pop_screen()
 
 
 class ActivityTable(_widget.Widget, can_focus=True):
@@ -19,6 +65,7 @@ class ActivityTable(_widget.Widget, can_focus=True):
         ("K", "terminate_backend", "Terminate Backend"),
         ("c", "query_to_clipboard", "Query to Clipboard"),
         ("r", "refresh_view", "Toggle Refresh"),
+        ("e", "explain", "Explain"),
     ]
 
     _COLUMNS = {
@@ -122,6 +169,11 @@ class ActivityTable(_widget.Widget, can_focus=True):
 
     def action_show_idle(self):
         self.show_idle = not self.show_idle
+
+    def action_explain(self):
+        query = self.get_current_query()
+        plan = self._state.get_query_plan(query)
+        self.app.push_screen(QueryPlan(query, plan))
 
     def action_cancel_backend(self):
         row = self.get_current_row()

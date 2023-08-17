@@ -80,3 +80,7 @@ class State(object):
             return map(dict, self._conn.execute(stmt))
         finally:
             self._conn.rollback()
+
+    def get_query_plan(self, stmt):
+        stmt = f"EXPLAIN {stmt}"
+        return "\n".join([_[0] for _ in self._conn.execute(stmt)])
