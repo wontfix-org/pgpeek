@@ -14,6 +14,7 @@ class State(object):
         SELECT
             pid,
             client_addr || $$:$$ || client_port as addr,
+            application_name,
             {waiting} AS waiting,
             datname,
             usename,

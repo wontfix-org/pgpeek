@@ -71,6 +71,7 @@ class ActivityTable(_widget.Widget, can_focus=True):
     _COLUMNS = {
         "pid": {"label": "PID"},
         "addr": {},
+        "application_name": {"label": "AppName"},
         "waiting": {"label": "Wait", "handle": lambda v: str(int(v))},
         "datname": {"label": "Database"},
         "usename": {"label": "User"},
