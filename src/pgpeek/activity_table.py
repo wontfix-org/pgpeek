@@ -127,22 +127,22 @@ class ActivityTable(_widget.Widget, can_focus=True):
             self.set_timer(1, self.update)
 
     def _update_column_widths(self):
-        widths = {}
-        for key, opts in self._COLUMNS.items():
-            widths[key] = len(opts.get("label", key.title()))
-
         if self.data is not None:
             for row in self.data:
                 for key, opts in self._COLUMNS.items():
-                    widths[key] = max(opts.get("width", 0), widths[key], len(row[key]))
+                    opts["width"] = max(
+                        opts.get("width", 0),
+                        len(row[key]),
+                        len(opts.get("label", key)),
+                    )
 
-        widths["query"] = (
-            self.app.size.width - sum(v for k, v in widths.items() if k != "query")
-        ) - 10
+        self._COLUMNS["query"]["width"] = self.app.size.width - sum(
+            v["width"] for k, v in self._COLUMNS.items() if k != "query"
+        )
 
-        for key, value in widths.items():
+        for key, value in self._COLUMNS.items():
             self.log(f"Setting {key}.width = {value}")
-            self.get_column(key).width = value
+            self.get_column(key).width = value["width"]
 
         table = self.query_one(_widgets.DataTable)
         table.refresh()
