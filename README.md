@@ -1,4 +1,4 @@
-# Peek into PostgreSQL query activity
+# Peek into PostgreSQL query activity ಠಠ
 
 Just a little toy project to check out `textual`, call `pgpeek <psycopg2-dsn>`
 
