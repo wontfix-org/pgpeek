@@ -4,7 +4,6 @@ import weakref as _weakref
 import psycopg2 as _pg2
 import psycopg2.extensions as _pg2extensions
 import psycopg2.extras as _pg2extras
-import six as _six
 
 
 class Connection(object):
@@ -32,16 +31,12 @@ class Connection(object):
         cursor = self.cursor(cursor_factory=_pg2extras.DictCursor)
         try:
             getattr(cursor, method)(*args, **kwargs)
-        except _pg2.OperationalError:
-            e = _sys.exc_info()
+        except _pg2.OperationalError as exc:
             try:
-                try:
-                    cursor.close()
-                except _pg2.Error:
-                    pass
-                _six.reraise(e[0], e[1], e[2])
-            finally:
-                del e
+                cursor.close()
+            except _pg2.Error:
+                pass
+            raise exc
         self._cursors.add(cursor)
         return ResultSet(self, cursor)
 
